@@ -91,7 +91,7 @@ object StreamingNQueens extends zio.ZIOAppDefault {
   def isSolutionSetExhausted(num: Ref[Int]): ZIO[Clock, Nothing, (Int, Long)] =
     num.get repeat solutionCheckPolicy
 
-  /* Decrements a counter as each solution is found*/
+  /* Decrements a counter as each solution is found */
   def countDown(counter: Ref[Int]): ZIO[Console, Nothing, Int] =  for {
     reqNumber <- counter.getAndUpdate(_ - 1)
   } yield reqNumber
