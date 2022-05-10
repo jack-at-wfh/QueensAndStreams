@@ -4,4 +4,7 @@
 *.
 /.bsp/*
 /.idea/*
-project/target/*
+/target/*
+/project/build.properties
+/project/target/config-classes/*
+
