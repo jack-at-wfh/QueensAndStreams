@@ -87,16 +87,23 @@ object StreamingNQueens extends zio.ZIOAppDefault {
     a <- (1 to n)
   } yield IndexedSeq((1,a))).flatMap(n ⇒ addNextPosition(n))
 
-  /* Uses ZSchedule to set a policy on checking if the full set of solutions has been found.*/
+  /* Uses ZSchedule to set a policy on checking if the full set of solutions has been found.
+  *  The policy is to repeat every 200 milliseconds until the reference parameter equals zero.
+  */
   def isSolutionSetExhausted(num: Ref[Int]): ZIO[Clock, Nothing, (Int, Long)] =
     num.get repeat solutionCheckPolicy
 
-  /* Decrements a counter as each solution is found */
+  val solutionCheckPolicy: WithState[(Unit, Long), Any, Int, (Int, Long)] =
+    Schedule.recurUntilEquals(0) && Schedule.spaced(200.millis)
+
+  /* Decrements the reference counter as each solution is found. Once the
+  *  counter is zero the program will terminate
+  */
   def countDown(counter: Ref[Int]): ZIO[Console, Nothing, Int] =  for {
     reqNumber <- counter.getAndUpdate(_ - 1)
   } yield reqNumber
 
-  /* Main function*/
+  /* Main function - */
   def streamingNQueens(implicit boardSize: Int): ZIO[Scope with Clock with Console, Throwable, Unit] = for {
     numProcessors <- ZIO.succeed(java.lang.Runtime.getRuntime.availableProcessors)
     counter <- Ref.make[Int](nQueensSolution(boardSize))
@@ -162,16 +169,14 @@ object StreamingNQueens extends zio.ZIOAppDefault {
   val queueTheQueens: UIO[Queue[BOARD]] = Queue.unbounded[BOARD]
   val queueTheSolutions: UIO[Queue[BOARD]] = Queue.unbounded[BOARD]
 
-  val solutionCheckPolicy: WithState[(Unit, Long), Any, Int, (Int, Long)] =
-    Schedule.recurUntilEquals(0) && Schedule.spaced(200.millis)
   val nQueensSolution: Map[Int, Int] =
     Map(
       0 -> 1, 1 -> 1, 2 -> 0, 3 -> 0, 4 -> 2, 5 -> 0, 6 -> 4, 7 -> 40, 8 -> 92,
       9 -> 352,10 -> 724, 11 -> 2680, 12 -> 14200, 13 -> 73712,14 -> 365596,
       15 -> 2279184
-    ) //NQueens is a well-known problem see https://oeis.org/A000170
+    ) //NQueens is a well-known problem see https://oeis.org/A000170, this map is used to limit the search
 
-  implicit val chessBoard: Int = 10
+  implicit val chessBoard: Int = 8
 
   val run: ZIO[Clock with Console with Scope, Throwable, Unit] = streamingNQueens
 
