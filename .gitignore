@@ -7,4 +7,5 @@
 /target/*
 /project/build.properties
 /project/target/config-classes/*
+/project/target/*
 
