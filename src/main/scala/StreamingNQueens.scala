@@ -31,7 +31,7 @@ object StreamingNQueens extends zio.ZIOAppDefault {
   def unfoldBoardPositions(li: IndexedSeq[BOARD]): ZStream[Any, Nothing, BOARD]  =
     ZStream.unfold(li) {
       case Vector() => None
-      case (hd: BOARD) +: tail => Some(hd, tail)
+      case (hd:BOARD) +: tail => Some(hd, tail)
     }
 
   /* An effect to generate a string representation of a chessboard */
@@ -73,8 +73,8 @@ object StreamingNQueens extends zio.ZIOAppDefault {
     checkSolutionTR(value, true)
   }
 
-  /* Looks ahead to the next possible positions on the chessboard. Excludes adding positions 
-     in the current column and in direct diagonals 
+  /* Looks ahead to the next possible positions on the chessboard. Excludes adding positions
+     in the current column and in direct diagonals
   */
   def addNextPosition(li: BOARD)(implicit boardSize: Int): IndexedSeq[BOARD] = {
     val il = li.reverse

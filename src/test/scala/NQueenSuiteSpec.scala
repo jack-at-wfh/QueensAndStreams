@@ -1,4 +1,5 @@
 import zio.*
+import zio.stream.*
 import zio.test.{assert, *}
 
 object NQueenSuiteSpec extends ZIOSpecDefault {
@@ -20,6 +21,7 @@ object NQueenSuiteSpec extends ZIOSpecDefault {
     IndexedSeq((1, 1), (2, 4))
   )
   val testResultsOutput: String = s"[2,4,1,3]\n._._._._.\n|_|x|_|_|\n|_|_|_|x|\n|x|_|_|_|\n|_|_|x|_|\n"
+  val testUnfoldResult: Chunk[StreamingNQueens.BOARD] = Chunk(IndexedSeq((1, 1), (2, 3)), IndexedSeq((1, 1), (2, 4)))
   def spec = suite("Full suite of Tests for nQueens problem")(
     test("Simple correct result [3,1,4,2] for nQueens(4)") {
       assertTrue(StreamingNQueens.isSafe(testCorrectResult1))
@@ -43,6 +45,11 @@ object NQueenSuiteSpec extends ZIOSpecDefault {
     test("Check match with output requirements") {
       assertZIO(StreamingNQueens.prettyPrint(testCorrectResult2))(
         Assertion.assertion("Should be equal")(_ == testResultsOutput)
+      )
+    },
+    test("Unfolding stream of Check match with output requirements") {
+      assertZIO(StreamingNQueens.unfoldBoardPositions(nextPositionResult1).runCollect)(
+        Assertion.hasSameElements(testUnfoldResult)
       )
     }
   )
