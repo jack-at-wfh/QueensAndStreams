@@ -73,7 +73,9 @@ object StreamingNQueens extends zio.ZIOAppDefault {
     checkSolutionTR(value, true)
   }
 
-  /* Looks ahead to the next possible positions on the chessboard. Excludes current column and direct diagonals */
+  /* Looks ahead to the next possible positions on the chessboard. Excludes adding positions 
+     in the current column and in direct diagonals 
+  */
   def addNextPosition(li: BOARD)(implicit boardSize: Int): IndexedSeq[BOARD] = {
     val il = li.reverse
     val hd = il.head
