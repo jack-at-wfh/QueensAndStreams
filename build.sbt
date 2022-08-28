@@ -8,7 +8,10 @@ lazy val root = (project in file("."))
     name := "QueensAndStreams",
     libraryDependencies ++= List(
       Libraries.zio,
-      Libraries.zioStreams
+      Libraries.zioTest,
+      Libraries.zioStreams,
+      Libraries.scalaNLP,
+      Libraries.scalaNLPViz
     ),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )

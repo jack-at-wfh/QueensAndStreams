@@ -1,7 +1,8 @@
-import zio.*
+import zio._
 import zio.Schedule.WithState
 import zio.stream.*
 
+import java.util.concurrent.TimeUnit
 import scala.annotation.tailrec
 /**
  Algorithm: nQueens is a constraint satisfaction problem with three hard constraints.
@@ -90,7 +91,7 @@ object StreamingNQueens extends zio.ZIOAppDefault {
   /* Uses ZSchedule to set a policy on checking if the full set of solutions has been found.
   *  The policy is to repeat every 200 milliseconds until the reference parameter equals zero.
   */
-  def isSolutionSetExhausted(num: Ref[Int]): ZIO[Clock, Nothing, (Int, Long)] =
+  def isSolutionSetExhausted(num: Ref[Int]): UIO[(Int, Long)] =
     num.get repeat solutionCheckPolicy
 
   val solutionCheckPolicy: WithState[(Unit, Long), Any, Int, (Int, Long)] =
@@ -99,12 +100,13 @@ object StreamingNQueens extends zio.ZIOAppDefault {
   /* Decrements the reference counter as each solution is found. Once the
   *  counter is zero the program will terminate
   */
-  def countDown(counter: Ref[Int]): ZIO[Console, Nothing, Int] =  for {
+  def countDown(counter: Ref[Int]): UIO[Int] =  for {
     reqNumber <- counter.getAndUpdate(_ - 1)
   } yield reqNumber
 
+  // : ZIO[Scope with Console with Clock, Throwable, Unit]
   /* Main function - */
-  def streamingNQueens(implicit boardSize: Int): ZIO[Scope with Clock with Console, Throwable, Unit] = for {
+  def streamingNQueens(implicit boardSize: Int): ZIO[Scope, Throwable, Unit] = for {
     numProcessors <- ZIO.succeed(java.lang.Runtime.getRuntime.availableProcessors)
     counter <- Ref.make[Int](nQueensSolution(boardSize))
     inputQueue <- queueTheQueens
@@ -176,8 +178,13 @@ object StreamingNQueens extends zio.ZIOAppDefault {
       15 -> 2279184
     ) //NQueens is a well-known problem see https://oeis.org/A000170, this map is used to limit the search
 
-  implicit val chessBoard: Int = 8
+  implicit val chessBoard: Int = 4
 
-  val run: ZIO[Clock with Console with Scope, Throwable, Unit] = streamingNQueens
+  val run: ZIO[Scope, Throwable, Unit] = for {
+    startInMilliseconds <- zio.Clock.currentTime(TimeUnit.MILLISECONDS)
+    _ <- streamingNQueens
+    endInMilliseconds <- zio.Clock.currentTime(TimeUnit.MILLISECONDS)
+     _ <- Console.printLine(s"Duration: ${endInMilliseconds-startInMilliseconds} milliseconds")
+    } yield ()
 
 }
